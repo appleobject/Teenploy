@@ -5,4 +5,5 @@
     <string name="snooze">Snooze</string>
     <string name="channel_name"> Employee response</string>
     <string name="channel_description">A message from an employee</string>
+    <string name="text">You\'ve got mail</string>
 </resources>

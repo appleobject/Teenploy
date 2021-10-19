@@ -1,16 +1,14 @@
 package com.realtomjoney.teenploy.utils
 
+import android.app.Notification
+import android.app.Notification.DEFAULT_VIBRATE
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Context.NOTIFICATION_SERVICE
-import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat.getSystemService
-import com.realtomjoney.teenploy.MainActivity
+import androidx.core.app.NotificationCompat.DEFAULT_SOUND
 import com.realtomjoney.teenploy.R
 
 private const val CHANNEL_ID =0
@@ -18,56 +16,68 @@ private const val REQUEST_CODE = 0
 private const val FLAGS = 0
 
 
-class DefaultNotificationHelper (private val messageBody: String, private val applicationContext: Context){
+interface NotificationHelper{
+    fun startNotification(title: String,text: String, smallIcon: Int)
 
-//    @RequiresApi(Build.VERSION_CODES.O)
 
-    fun createChannel(){
+}
+
+class DefaultNotificationHelper(private val context: Context) : NotificationHelper {
+
+
+    // Register the notification manager with the system
+    private fun registerNotificationManagerWithSystem(channel: NotificationChannel){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = applicationContext.getString(R.string.channel_name)
-            val descriptionText = applicationContext.getString(R.string.channel_description)
+            val notificationManager =context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    // create a notification channel and register it with the system
+    private fun createNotificationChannel(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = context.getString(R.string.channel_name)
+            val descriptionText = context.getString(R.string.channel_description)
             val importance = NotificationManager.IMPORTANCE_LOW
-            val channel = NotificationChannel(
-                applicationContext.getString(R.string.notification_channel_id),
+            val notificationChannel = NotificationChannel(
+                context.getString(R.string.notification_channel_id),
                 name,
                 importance
             ).apply {
                 description = descriptionText
+                setShowBadge(true)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
-
-            // Register the channel with the system
-            val notificationManagerCompat =
-                applicationContext.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            notificationManagerCompat.createNotificationChannel(channel)
-
-            // create an explicit intent for the tap action
-            val intent = Intent(applicationContext, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-
-            val pendingIntent = PendingIntent.getActivity(applicationContext, 0, intent, 0)
-
-
-            // create a basic notification
-            val builder = NotificationCompat.Builder(
-                applicationContext,
-                applicationContext.getString(R.string.notification_channel_id)
-            )
-                .setContentTitle(applicationContext.getString(R.string.notification_title))
-                .setContentText(messageBody)
-                .setSmallIcon(R.drawable.ic_mail)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-
-            // Show the notification
-            notificationManagerCompat.notify(CHANNEL_ID, builder.build())
+            registerNotificationManagerWithSystem(notificationChannel)
         }
+    }
 
+    // create a basic notification
+    private fun createNotificationInstance(title: String, text: String, smallIcon: Int) : NotificationCompat.Builder{
 
+        return NotificationCompat.Builder(context, context.getString(R.string.notification_channel_id))
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSmallIcon(smallIcon)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setDefaults(DEFAULT_VIBRATE)
+            .setDefaults(DEFAULT_SOUND)
 
     }
 
+    // display the notification
+    private fun notify(notificationCompat: NotificationCompat.Builder){
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(CHANNEL_ID, notificationCompat.build())
+    }
+
+    override fun startNotification(title: String, text: String, smallIcon: Int) {
+        createNotificationChannel()
+        notify(createNotificationInstance(title,text,smallIcon))
+    }
+
 }
+
 
 

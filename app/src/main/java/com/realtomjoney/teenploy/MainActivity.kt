@@ -1,10 +1,8 @@
 package com.realtomjoney.teenploy
 
-import android.app.NotificationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.realtomjoney.teenploy.utils.DefaultNotificationHelper
-import kotlin.coroutines.coroutineContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -14,8 +12,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        defaultNotificationHelper = DefaultNotificationHelper("Welcome",this)
-        defaultNotificationHelper.createChannel()
+        defaultNotificationHelper = DefaultNotificationHelper(this)
+        defaultNotificationHelper.startNotification(
+           "Employee response",
+            "You've got mail",
+            R.drawable.ic_mail
+        )
+
 
     }
 }
